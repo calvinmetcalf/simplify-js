@@ -6,14 +6,14 @@
 
 (function (global, undefined) {
 
-	
+    
 
 
 	// to suit your point format, run search/replace for '.x' and '.y'
 	// to switch to 3D, uncomment the lines in the next 2 functions
 	// (configurability would draw significant performance overhead)
-var returnASM=function(){
-	return function(stdlib, foreign, heap){
+window.stuff=[];
+	function asmModule (stdlib, foreign, heap){
 		"use asm";
         var f64 = new stdlib.Float64Array(heap);
         var i32 = new stdlib.Uint32Array(heap);
@@ -33,7 +33,7 @@ var returnASM=function(){
 			return ((dx * dx + dy * dy)>sqTolerance)|0;
 		}
 
-		function getSquareSegmentDistance(px, py, x, y, p2x, p2y) { // square distance from a point to a segment
+		function getSquareSegmentDistance(px,py, x, y, p2x, p2y) { // square distance from a point to a segment
 			px = +px;
             py = +py;
             x = +x;
@@ -67,7 +67,8 @@ var returnASM=function(){
 			dx = px - x;
 			dy = py - y;
 
-			return +(dx * dx + dy * dy);
+			return +(dx * dx +
+				   dy * dy);
 		
 		}
 
@@ -83,23 +84,23 @@ var returnASM=function(){
 				pointy = 0.0,
 				prevPointx = 0.0,
 				prevPointy = 0.0;
-				prevPointx = +f64[(i-2)>>3];
-				prevPointy = +f64[(i-1)>>3];
+				prevPointx = +f64[0];
+				prevPointy = +f64[1];
 			while((i|0) < (len|0)) {
-				pointx = +f64[i>>3];
+				pointx = f64[i];
                 i = (i + 1)|0;
-				pointy = +f64[i>>3];
+				pointy = f64[i];
                 i = (i + 1)|0;
 				if (getSquareDistance(pointx,pointy, prevPointx,prevPointy,sqTolerance)) {
-					f64[j>>3]=pointx;
-					f64[(j+1)>>3]=pointy;
+					f64[j]=pointx;
+					f64[j+1]=pointy;
 					prevPointx = pointx;
 					prevPointy = pointy;
-					j = (j + 2)|0;
+					j = j + 2;
 				}
 			}
-			f64[j>>3]=pointx;
-			f64[(j+1)>>3]=pointy;
+			f64[j]=pointx;
+			f64[j+1]=pointy;
 
 			return (j+2)|0;
 		}
@@ -111,8 +112,12 @@ var returnASM=function(){
 			sqTolerance = +sqTolerance;
 			nlen = nlen|0;
             hq=+hq;
-            var len = 0,
-             first = 0,
+            var len = 0;
+            len = nlen;
+            if(hq==0.0){
+                len = simplifyRadialDistance(sqTolerance,nlen);
+            }
+			var first = 0,
 			last  = 0,
 			i =0,
 			slen = 0,
@@ -123,22 +128,19 @@ var returnASM=function(){
             mShift = 0,
             fShift = 0,
             lShift = 0;
-            mShift = (nlen<<4)|0;
-            fShift = (mShift+(nlen<<3))|0;
-            lShift = (mShift+(nlen<<2))|0;
-            len = nlen;
-            if(hq==0.0){
-                len = simplifyRadialDistance(sqTolerance,nlen);
-            }
-			last = (len - 2)|0;
+            mShift = (heap.byteLength>>3);
+            fShift = ((heap.byteLength>>1)+(heap.byteLength>>2))>>2;
+            lShift = ((heap.byteLength>>1)+(heap.byteLength>>3))>>2;
+			last = len -2;
 
-			i32[(mShift+first)>>2] = i32[(mShift+last)>>2] = 1;
+			i32[mShift+first] = i32[mShift+last] = 1;
 
 			while (last) {
 				maxSqDist = 0.0;
 
-				for (i = (first + 2)|0; (i|0) < (last|0); i=(i+2)|0) {
-					sqDist = +getSquareSegmentDistance( +f64[i>>3], +f64[(i+1)>>3], +f64[first>>3], +f64[(first+1)>>3], +f64[last>>3], +f64[(last+1)>>3]);
+				for (i = first + 2; i < last; i=i+2) {
+					sqDist = getSquareSegmentDistance(f64[i],f64[i+1], f64[first],f64[first+1], f64[last],f64[last+1]);
+	
 					if (sqDist > maxSqDist) {
 						index = i;
 						maxSqDist = sqDist;
@@ -146,30 +148,31 @@ var returnASM=function(){
 				}
 
 				if (maxSqDist > sqTolerance) {
-					i32[(mShift+index)>>2] = 1;
-					i32[(fShift+slen)>>2] = first;
-					i32[(lShift+slen)>>2] = index;
-					slen = (slen + 1)|0;
-					i32[(fShift+slen)>>2] = index;
-					i32[(lShift+slen)>>2] = last;
-					slen = (slen + 1|0);
+					i32[mShift+index] = 1;
+
+					i32[fShift+slen] = first;
+					i32[lShift+slen] = index;
+					slen = slen + 1;
+					i32[fShift+slen] = index;
+					i32[lShift+slen] = last;
+					slen = slen + 1;
                     
 			}
 
 		
 			
-                      slen=(slen-1)|0;
-				    first=i32[(fShift+slen)>>2]|0;
-				     last = i32[(lShift+slen)>>2]|0;
+                      slen=slen-1;
+				    first=i32[fShift+slen];
+				     last = i32[lShift+slen]
 				
 			}
 
-			for (i = 0; (i|0) < (len|0); i=(i+2)|0) {
-				if ((i32[(mShift+i)>>2]|0) != 0) {
-					f64[(len+outlen)>>3] = +f64[i>>3];
-					outlen = (outlen + 1)|0;
-					f64[(len+outlen)>>3] = +f64[(i+1)>>3];
-					outlen = (outlen + 1)|0;
+			for (i = 0; i < len; i=i+2) {
+				if (i32[mShift+i]) {
+					f64[nlen+outlen] = f64[i];
+					outlen = outlen + 1;
+					f64[nlen+outlen] = f64[i+1];
+					outlen = outlen + 1;
 				}
 			}
 
@@ -177,22 +180,29 @@ var returnASM=function(){
 		}
 		
 		return {simplifyRadialDistance:simplifyRadialDistance, simplifyDouglasPeucker:simplifyDouglasPeucker};
-};
-};
+}
 	var root = (typeof exports !== undefined + '')
 			 ? exports
 			 : global;
 	root.simplify = function (points, tolerance, highestQuality) {
-		var array = (new Float64Array(new ArrayBuffer(8388608)));
+        var zz = new Date();
+		var array = (new Float64Array(points.length*4));
 		array.set(points);
 		var buffer = array.buffer;
-		var asm = returnASM()(window,{},buffer);
+		var asm = asmModule(window,{},buffer);
 		var sqTolerance = (tolerance !== undefined)
 						? tolerance * tolerance
 						: 1;
 		var len=points.length;
+        zz=(new Date())-zz;
+        var tt;
+        tt= new Date();
 		var outlen = asm.simplifyDouglasPeucker(sqTolerance,len,highestQuality);
-        var oot = new Float64Array(buffer,len,outlen);
+        tt = (new Date())-tt;
+        var tz = new Date();
+        var oot = new Float64Array(buffer,buffer.byteLength>>2,outlen);
+        var tz = (new Date())-tz;
+        console.log([zz,tt,tz]);
 		return oot;
 };
 
