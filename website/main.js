@@ -25,7 +25,7 @@
 
 	var pointsLen = points.length;
 
-	pointNumBefore.innerHTML = pointsLen;
+	pointNumBefore.innerHTML = pointsLen/2;
 
 	function update() {
 
@@ -41,15 +41,14 @@
 		var i, len, p,
 		    newLen = newPoints.length;
 
-		pointNumAfter.innerHTML = newLen;
+		pointNumAfter.innerHTML = newLen/2;
 		pointNumTimes.innerHTML = Math.round(pointsLen / newLen);
 		toleranceVal.innerHTML = tolerance;
 
 		ctx.beginPath();
 
-		for (i = 0, len = newPoints.length; i < len; i++) {
-			p = newPoints[i];
-			ctx.lineTo(p.x, p.y);
+		for (i = 0, len = newPoints.length; i < len; i=i+2) {
+			ctx.lineTo(newPoints[i], newPoints[i+1]);
 		}
 
 		ctx.stroke();
