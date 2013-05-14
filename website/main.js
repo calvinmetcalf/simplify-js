@@ -31,11 +31,8 @@
 
 		ctx.clearRect(200, 100, 800, 400);
 
-		var newPoints,
-			start = +new Date();
-
-		newPoints = simplify(points, tolerance, highQuality);
-
+		var start = +new Date();
+		simplify(points, tolerance, highQuality,function(newPoints){
 		durationEl.innerHTML = +new Date() - start;
 
 		var i, len, p,
@@ -53,6 +50,7 @@
 		}
 
 		ctx.stroke();
+		});
 	}
 
 	function onSliderChange(e) {

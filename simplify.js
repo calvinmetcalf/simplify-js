@@ -109,7 +109,7 @@
 
 	// simplification based on distance between points
 
-	function simplifyRadialDistance(points, sqTolerance) {
+	function simplifyRadialDistance(points, sqTolerance,cb) {
 
 		var i,
 		    len = points.length,
@@ -130,13 +130,13 @@
 			newPoints.push(point);
 		}
 
-		return newPoints;
+		cb(newPoints);
 	}
 
 
 	// simplification using optimized Douglas-Peucker algorithm with recursion elimination
 
-	function simplifyDouglasPeucker(points, sqTolerance) {
+	function simplifyDouglasPeucker(points, sqTolerance, cb) {
 
 		var len = points.length,
 			MarkerArray = (typeof Uint8Array !== undefined + '' ? Uint8Array : Array),
@@ -186,22 +186,24 @@
 			}
 		}
 
-		return newPoints;
+	cb(newPoints);
 	}
 
 
 	var root = (typeof exports !== undefined + '' ? exports : global);
 
-	root.simplify = function (points, tolerance, highestQuality) {
+	root.simplify = function (points, tolerance, highestQuality, cb) {
 
 		var sqTolerance = (tolerance !== undefined ? tolerance * tolerance : 1);
-
+        var doStuff = function(pts){
+            simplifyDouglasPeucker(pts, sqTolerance, cb);
+        };
 		if (!highestQuality) {
-			points = simplifyRadialDistance(points, sqTolerance);
+			simplifyRadialDistance(points, sqTolerance, doStuff);
+		}else{
+    	 doStuff(points);   
 		}
-		points = simplifyDouglasPeucker(points, sqTolerance);
 
-		return points;
 	};
 
 }(this));
