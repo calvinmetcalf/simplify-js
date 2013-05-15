@@ -12,29 +12,29 @@
 	// run search/replace for '.x' and '.y' to suit your point format
 	// (its configurability would draw significant performance overhead)
 
-	function getSquareDistance(p1, p2) { // square distance between 2 points
+	function getSquareDistance(p1, p2, sqTolerance) { // square distance between 2 points
 
 		var dx = p1.x - p2.x,
-		    dy = p1.y - p2.y;
+			dy = p1.y - p2.y;
 
-		return dx * dx + dy * dy;
+		return (dx * dx + dy * dy)>sqTolerance;
 	}
 
 	function getSquareSegmentDistance(p, p1, p2) { // square distance from a point to a segment
 
 		var x = p1.x,
-		    y = p1.y,
+			y = p1.y,
 
-		    dx = p2.x - x,
-		    dy = p2.y - y,
+			dx = p2.x - x,
+			dy = p2.y - y,
 
-		    t;
+			t;
 
 		if (dx !== 0 || dy !== 0) {
 
 			t = ((p.x - x) * dx +
-			     (p.y - y) * dy) /
-			    (dx * dx + dy * dy);
+				 (p.y - y) * dy) /
+				(dx * dx + dy * dy);
 
 			if (t > 1) {
 				x = p2.x;
@@ -59,8 +59,8 @@
 	function getSquareDistance(p1, p2) {
 
 		var dx = p1.x - p2.x,
-		    dy = p1.y - p2.y,
-		    dz = p1.z - p2.z;
+			dy = p1.y - p2.y,
+			dz = p1.z - p2.z;
 
 		return dx * dx + dy * dy + dz * dz;
 	}
@@ -68,21 +68,21 @@
 	function getSquareSegmentDistance(p, p1, p2) {
 
 		var x = p1.x,
-		    y = p1.y,
-		    z = p1.z,
+			y = p1.y,
+			z = p1.z,
 
-		    dx = p2.x - x,
-		    dy = p2.y - y,
-		    dz = p2.z - z,
+			dx = p2.x - x,
+			dy = p2.y - y,
+			dz = p2.z - z,
 
-		    t;
+			t;
 
 		if (dx !== 0 || dy !== 0) {
 
 			t = ((p.x - x) * dx +
-			     (p.y - y) * dy +
-			     (p.z - z) * dz) /
-			    (dx * dx + dy * dy + dz * dz);
+				 (p.y - y) * dy +
+				 (p.z - z) * dz) /
+				(dx * dx + dy * dy + dz * dz);
 
 			if (t > 1) {
 				x = p2.x;
@@ -109,18 +109,20 @@
 
 	// simplification based on distance between points
 
-	function simplifyRadialDistance(points, sqTolerance,cb) {
+	function simplifyRadialDistance(data,cb) {
 
-		var i,
-		    len = points.length,
-		    point,
-		    prevPoint = points[0],
-		    newPoints = [prevPoint];
+		var points = data.points,
+			sqTolerance=data.sqTolerance,
+			i,
+			len = points.length,
+			point,
+			prevPoint = points[0],
+			newPoints = [prevPoint];
 
 		for (i = 1; i < len; i++) {
 			point = points[i];
 
-			if (getSquareDistance(point, prevPoint) > sqTolerance) {
+			if (getSquareDistance(point, prevPoint, sqTolerance)) {
 				newPoints.push(point);
 				prevPoint = point;
 			}
@@ -130,26 +132,27 @@
 			newPoints.push(point);
 		}
 
-		cb(newPoints);
+		return newPoints ;
 	}
 
 
 	// simplification using optimized Douglas-Peucker algorithm with recursion elimination
 
-	function simplifyDouglasPeucker(points, sqTolerance, cb) {
+	function simplifyDouglasPeucker(data, cb) {
 
-		var len = points.length,
-			MarkerArray = (typeof Uint8Array !== undefined + '' ? Uint8Array : Array),
-		    markers = new MarkerArray(len),
+		var points = data.highestQuality?data.points:simplifyRadialDistance(data),
+			sqTolerance=data.sqTolerance,
+			len = points.length,
+			markers = new Uint8Array(len),
 			first = 0,
 			last = len - 1,
-		    i,
+			i,
 			maxSqDist,
-		    sqDist,
-		    index,
-		    firstStack = [],
-		    lastStack = [],
-		    newPoints = [];
+			sqDist,
+			index,
+			firstStack = [],
+			lastStack = [],
+			newPoints = [];
 
 		markers[first] = markers[last] = 1;
 
@@ -195,14 +198,9 @@
 	root.simplify = function (points, tolerance, highestQuality, cb) {
 
 		var sqTolerance = (tolerance !== undefined ? tolerance * tolerance : 1);
-        var doStuff = function(pts){
-            simplifyDouglasPeucker(pts, sqTolerance, cb);
-        };
-		if (!highestQuality) {
-			simplifyRadialDistance(points, sqTolerance, doStuff);
-		}else{
-    	 doStuff(points);   
-		}
+
+			simplifyDouglasPeucker({points:points,sqTolerance: sqTolerance,highestQuality:highestQuality}, cb);
+		
 
 	};
 
