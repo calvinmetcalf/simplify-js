@@ -1,7 +1,7 @@
 /*
- Copyright (c) 2012, Vladimir Agafonkin
+ Copyright (c) 2012, Vladimir Agafonkin and modified by Calvin Metcalf
  Simplify.js is a high-performance polyline simplification library.
- http://mourner.github.com/simplify-js/
+ http://calvinmetcalf.github.com/simplify-js/
 */
 
 (function (global, undefined) {
