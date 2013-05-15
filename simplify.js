@@ -140,7 +140,8 @@ var obj={
 		}
 
 	cb(newPoints);
-	}}
+	}
+};
 
 
 	var root = (typeof exports !== undefined + '' ? exports : global);
@@ -149,7 +150,7 @@ var obj={
 
 		var sqTolerance = (tolerance !== undefined ? tolerance * tolerance : 1);
 
-			obj.simplifyDouglasPeucker({points:points,sqTolerance: sqTolerance,highestQuality:highestQuality}, cb);
+			obj.simplifyDouglasPeucker({points:points,sqTolerance: sqTolerance,highestQuality:highestQuality},cb);
 		
 
 	};
