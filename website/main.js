@@ -31,7 +31,7 @@
 		
 
 		var start = +new Date();
-		simplify(points, tolerance, highQuality,function(newPoints){
+		simplify(points, tolerance, highQuality,function(err,newPoints){
 		ctx.clearRect(200, 100, 800, 400);
 		durationEl.innerHTML = +new Date() - start;
 

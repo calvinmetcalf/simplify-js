@@ -139,7 +139,7 @@ var obj={
 			}
 		}
 
-	cb(newPoints);
+	cb(null,newPoints);
 	}
 };
 
@@ -147,10 +147,19 @@ var obj={
 	var root = (typeof exports !== undefined + '' ? exports : global);
 
 	root.simplify = function (points, tolerance, highestQuality, cb) {
+if(typeof tolerance === 'function'){
+	cb=tolerance;
+	tolerance=1;
+	highestQuality=false;
+}if(typeof highestQuality === 'function'){
+	cb=highestQuality;
+	highestQuality = false;
+	tolerance=tolerance * tolerance;
+}else{
+	tolerance=tolerance * tolerance;
+}
 
-		var sqTolerance = (tolerance !== undefined ? tolerance * tolerance : 1);
-
-			obj.simplifyDouglasPeucker({points:points,sqTolerance: sqTolerance,highestQuality:highestQuality},cb);
+			obj.simplifyDouglasPeucker({points:points,sqTolerance: tolerance,highestQuality:highestQuality},cb);
 		
 
 	};

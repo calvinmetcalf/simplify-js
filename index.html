@@ -17,7 +17,7 @@
 		<p>Simplify.js (<strong>License</strong>: <em>BSD</em>, <strong>GitHub</strong>: <a href="http://github.com/mourner/simplify-js">mourner / simplify-js</a>, <strong>npm</strong>: <em>simplify-js</em>) is a tiny high-performance JavaScript 2D/3D polyline simplification library by <a href="http://agafonkin.com/en">Vladimir Agafonkin</a>, extracted from <a href="http://leafletjs.com/">Leaflet</a>, a JS interactive maps library of the same author. It uses a combination of <a href="http://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm">Douglas-Peucker</a> and Radial Distance algorithms. Works both on browser and server platforms.</p>
 
 		<p>Polyline simplification dramatically reduces the number of points in a polyline while retaining its shape, giving a huge performance boost when processing it and also reducing visual noise. For example, it's essential when rendering a 70k-points line chart or a map route in the browser using Canvas or SVG.</p>
-
+<p>This on the other hand is <a href="https://github.com/calvinmetcalf/simplify-js">Calvin Metcalf's fork</a> which is async in nature.</p>
 		<div class="canvas-container cf">
 			<p class="tolerance-container"><input id="tolerance" type="text" value="0.8" /></p>
 
@@ -36,15 +36,15 @@
 		</div>
 
 		<dl>
-			<dt><code>simplify(points, tolerance, highQuality)</code></dt>
+			<dt><code>simplify(points, tolerance, highQuality, callback)</code></dt>
 			<dd>
-				<p>Returns an array of simplified points.</p>
+				<p>invokes callback with array of simplified points.</p>
 			</dd>
 
 			<dt><code>points</code> [Array]<dt>
 			<dd>
-				<p>An array of points of <code>{x: Number, y: Number}</code> format.</p>
-				<p>Configurability of point format would draw a significant performance overhead, so if you use a different format, e.g. <code>[Number, Number]</code>, just run search/replace of <code>.x</code> and <code>.y</code> through the source of the library to suite it to your application. Similarly, to make it work with 3D points, go through the commented lines at the top of the source.</p>
+				<p>An array of points of <code>[Number, Number]</code> format.</p>
+				<p>Configurability of point format would draw a significant performance overhead, so if you use a different format, e.g. <code>{x: Number, y: Number}</code>, just run search/replace of <code>.x</code> and <code>.y</code> through the source of the library to suite it to your application. Similarly, to make it work with 3D points, go through the commented lines at the top of the source.</p>
 			</dd>
 
 			<dt><code>tolerance</code> [Number] (optional, 1 by default)<dt>
@@ -56,9 +56,13 @@
 			<dd>
 				<p>Excludes distance-based preprocessing step which leads to highest quality simplification but runs ~10-20 times slower.</p>
 			</dd>
+			<dt><code>callback</code> [Function]<dt>
+			<dd>
+				<p>Function called with two argument,errer argument and array of simplified points.</p>
+			</dd>
 		</dl>
 
-		<p class="footer">&copy; 2012, <a href="http://agafonkin.com/en">Vladimir Agafonkin</a>. Released under <a href="https://raw.github.com/mourner/simplify-js/master/LICENSE">BSD license</a>.</p>
+		<p class="footer">&copy; 2012, <a href="http://agafonkin.com/en">Vladimir Agafonkin</a> and modified by <a href="http://cwmma.tumblr.com">Calvin Metcalf</a>. Released under <a href="https://raw.github.com/mourner/simplify-js/master/LICENSE">BSD license</a>.</p>
 
 	</div>
 <script src="communist.js"></script>
