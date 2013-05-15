@@ -9,36 +9,36 @@
 	"use strict";
 
 
-	// run search/replace for '.x' and '.y' to suit your point format
+	// run search/replace for '.x' and '[1]' to suit your point format
 	// (its configurability would draw significant performance overhead)
+var obj={
+	getSquareDistance:function(p1,p2) { // square distance between 2 points
+		var np1 = this.points[p1],np2 =this.points[p2];
+		var dx = np1[0] - np2[0],
+			dy = np1[1] - np2[1];
 
-	function getSquareDistance(p1, p2, sqTolerance) { // square distance between 2 points
+		return (dx * dx + dy * dy)>this.sqTolerance;
+	},
 
-		var dx = p1.x - p2.x,
-			dy = p1.y - p2.y;
+	getSquareSegmentDistance : function(p, p1, p2) { // square distance from a point to a segment
+	var np = this.points[p],np1 = this.points[p1],np2 = this.points[p2];
+		var x = np1[0],
+			y = np1[1],
 
-		return (dx * dx + dy * dy)>sqTolerance;
-	}
-
-	function getSquareSegmentDistance(p, p1, p2) { // square distance from a point to a segment
-
-		var x = p1.x,
-			y = p1.y,
-
-			dx = p2.x - x,
-			dy = p2.y - y,
+			dx = np2[0] - x,
+			dy = np2[1] - y,
 
 			t;
 
 		if (dx !== 0 || dy !== 0) {
 
-			t = ((p.x - x) * dx +
-				 (p.y - y) * dy) /
+			t = ((np[0] - x) * dx +
+				 (np[1] - y) * dy) /
 				(dx * dx + dy * dy);
 
 			if (t > 1) {
-				x = p2.x;
-				y = p2.y;
+				x = np2[0];
+				y = np2[1];
 
 			} else if (t > 0) {
 				x += dx * t;
@@ -46,103 +46,53 @@
 			}
 		}
 
-		dx = p.x - x;
-		dy = p.y - y;
+		dx = np[0] - x;
+		dy = np[1] - y;
 
 		return dx * dx + dy * dy;
-	}
+	},
 
 
-	// replace previous functions with the following for 3D space
 
-	/*
-	function getSquareDistance(p1, p2) {
-
-		var dx = p1.x - p2.x,
-			dy = p1.y - p2.y,
-			dz = p1.z - p2.z;
-
-		return dx * dx + dy * dy + dz * dz;
-	}
-
-	function getSquareSegmentDistance(p, p1, p2) {
-
-		var x = p1.x,
-			y = p1.y,
-			z = p1.z,
-
-			dx = p2.x - x,
-			dy = p2.y - y,
-			dz = p2.z - z,
-
-			t;
-
-		if (dx !== 0 || dy !== 0) {
-
-			t = ((p.x - x) * dx +
-				 (p.y - y) * dy +
-				 (p.z - z) * dz) /
-				(dx * dx + dy * dy + dz * dz);
-
-			if (t > 1) {
-				x = p2.x;
-				y = p2.y;
-				z = p2.z;
-
-			} else if (t > 0) {
-				x += dx * t;
-				y += dy * t;
-				z += dz * t;
-			}
-		}
-
-		dx = p.x - x;
-		dy = p.y - y;
-		dz = p.z - z;
-
-		return dx * dx + dy * dy + dz * dz;
-	}
-	*/
 
 	// the rest of the code doesn't care for the point format
 
 
 	// simplification based on distance between points
 
-	function simplifyRadialDistance(data,cb) {
+	simplifyRadialDistance:function() {
 
-		var points = data.points,
-			sqTolerance=data.sqTolerance,
-			i,
-			len = points.length,
-			point,
-			prevPoint = points[0],
-			newPoints = [prevPoint];
+		var i,
+			len = this.points.length,
+			prevPoint = 0,
+			newPoints = [this.points[0]];
 
 		for (i = 1; i < len; i++) {
-			point = points[i];
 
-			if (getSquareDistance(point, prevPoint, sqTolerance)) {
-				newPoints.push(point);
-				prevPoint = point;
+			if (this.getSquareDistance(i, prevPoint)) {
+				newPoints.push(this.points[i]);
+				prevPoint = i;
 			}
 		}
 
-		if (prevPoint !== point) {
-			newPoints.push(point);
+		if (prevPoint !== i && this.points[i]) {
+			newPoints.push(this.points[i]);
 		}
 
-		return newPoints ;
-	}
+		this.points = newPoints ;
+	},
 
 
 	// simplification using optimized Douglas-Peucker algorithm with recursion elimination
 
-	function simplifyDouglasPeucker(data, cb) {
+	simplifyDouglasPeucker:function(data, cb) {
 
-		var points = data.highestQuality?data.points:simplifyRadialDistance(data),
-			sqTolerance=data.sqTolerance,
-			len = points.length,
+		this.points = data.points;
+		this.sqTolerance=data.sqTolerance;
+		if(!data.highestQuality){
+			this.simplifyRadialDistance();
+		}
+			var len = this.points.length,
 			markers = new Uint8Array(len),
 			first = 0,
 			last = len - 1,
@@ -161,7 +111,7 @@
 			maxSqDist = 0;
 
 			for (i = first + 1; i < last; i++) {
-				sqDist = getSquareSegmentDistance(points[i], points[first], points[last]);
+				sqDist = this.getSquareSegmentDistance(i, first, last);
 
 				if (sqDist > maxSqDist) {
 					index = i;
@@ -169,7 +119,7 @@
 				}
 			}
 
-			if (maxSqDist > sqTolerance) {
+			if (maxSqDist > this.sqTolerance) {
 				markers[index] = 1;
 
 				firstStack.push(first);
@@ -185,12 +135,12 @@
 
 		for (i = 0; i < len; i++) {
 			if (markers[i]) {
-				newPoints.push(points[i]);
+				newPoints.push(this.points[i]);
 			}
 		}
 
 	cb(newPoints);
-	}
+	}}
 
 
 	var root = (typeof exports !== undefined + '' ? exports : global);
@@ -199,7 +149,7 @@
 
 		var sqTolerance = (tolerance !== undefined ? tolerance * tolerance : 1);
 
-			simplifyDouglasPeucker({points:points,sqTolerance: sqTolerance,highestQuality:highestQuality}, cb);
+			obj.simplifyDouglasPeucker({points:points,sqTolerance: sqTolerance,highestQuality:highestQuality}, cb);
 		
 
 	};

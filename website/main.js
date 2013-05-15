@@ -24,15 +24,15 @@
 	ctx.lineJoin = 'round';
 
 	var pointsLen = points.length;
-
 	pointNumBefore.innerHTML = pointsLen;
 
 	function update() {
 
-		ctx.clearRect(200, 100, 800, 400);
+		
 
 		var start = +new Date();
 		simplify(points, tolerance, highQuality,function(newPoints){
+		ctx.clearRect(200, 100, 800, 400);
 		durationEl.innerHTML = +new Date() - start;
 
 		var i, len, p,
@@ -46,7 +46,7 @@
 
 		for (i = 0, len = newPoints.length; i < len; i++) {
 			p = newPoints[i];
-			ctx.lineTo(p.x, p.y);
+			ctx.lineTo(p[0], p[1]);
 		}
 
 		ctx.stroke();
