@@ -14,7 +14,7 @@
 
 	var tolerance = 0.8,
 		highQuality = false;
-
+var points = pts;
 	var ctx = canvas.getContext('2d');
 	ctx.translate(-200, -100);
 
